@@ -1,5 +1,6 @@
 const SerialPort = require('serialport')
 const Readline = require('@serialport/parser-readline')
+var open = require("open");
 
 
 var app = require('express')();
@@ -14,7 +15,7 @@ app.get('/', function (req, res) {
 io.on('connection', function (socket) {
   console.log("Conectado!");
   //https://serialport.io/
-  const port = new SerialPort("/dev/ttyACM0", { baudRate: 115200 });
+  const port = new SerialPort("/dev/ttyUSB0", { baudRate: 115200 });
   const parser = new Readline();
   port.pipe(parser);
   
@@ -24,9 +25,19 @@ io.on('connection', function (socket) {
     console.log(msg);
     port.write(`${msg}\n`);    
   });
+
+
+   socket.on('disconnect', function() {
+      console.log('Got disconnect!');
+try{
+        port.close(()=>{console.log("Porta fechada");});
+}catch(e){console.error(e);}
+   });
+
 });
 
 
 http.listen(port, function () {
   console.log('listening on *:' + port);
+  open(`http://localhost:${port}`, 'google-chrome');
 });
